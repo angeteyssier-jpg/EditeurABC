@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Éditeur ABC - GitHub Pages</title>
-    <!-- Chargement de abcjs via CDN (version optimisée) -->
-    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
+    <title>Éditeur ABC - Version Finale</title>
+    <!-- Chargement via UNPKG (plus fiable que cdnjs sur GitHub) -->
+    <script src="https://unpkg.com/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
+    
     <style>
         :root { --primary: #4CAF50; --bg: #f4f4f9; --code-bg: #1e1e1e; --code-text: #d4d4d4; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -51,6 +52,8 @@
     <div>
         <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir</button>
         <button class="btn" onclick="saveFile()">💾 Sauvegarder</button>
+        <!-- Bouton de test ajouté -->
+        <button class="btn" style="background:#2196F3" onclick="testAbcjs()">🧪 Tester abcjs</button>
         <input type="file" id="file-input" accept=".abc" style="display: none;" onchange="loadFile(this)">
     </div>
 </header>
@@ -71,7 +74,7 @@
         <div class="code-area">
             <div class="code-header">
                 <span>Code ABC (Modifiable)</span>
-                <span id="status-msg" class="status-msg">Prêt</span>
+                <span id="status-msg" class="status-msg">Chargement...</span>
             </div>
             <textarea id="abc-code" placeholder="Le code ABC apparaîtra ici..."></textarea>
         </div>
@@ -81,14 +84,53 @@
 <script>
     let allPieces = [];
     let hasAbcjs = false;
+    let isAbcjsLoading = true;
 
-    function checkAbcjs() {
+    // Fonction de test manuelle
+    function testAbcjs() {
         if (typeof abcjs !== 'undefined') {
             hasAbcjs = true;
+            isAbcjsLoading = false;
+            document.getElementById('status-msg').textContent = "✅ abcjs chargé !";
+            document.getElementById('status-msg').className = "status-msg status-ok";
+            document.getElementById('error-banner').classList.remove('visible');
+            alert("abcjs est chargé ! Vous pouvez maintenant ouvrir un fichier.");
+        } else {
+            document.getElementById('error-msg').textContent = "abcjs n'est toujours pas chargé. Vérifiez la console (F12).";
+            document.getElementById('error-banner').classList.add('visible');
+        }
+    }
+
+    // Vérification continue (polling) pour s'assurer que abcjs est chargé
+    function checkAbcjs() {
+        if (typeof abcjs !== 'undefined' && isAbcjsLoading) {
+            hasAbcjs = true;
+            isAbcjsLoading = false;
+            document.getElementById('status-msg').textContent = "✅ Prêt";
+            document.getElementById('status-msg').className = "status-msg status-ok";
+            document.getElementById('error-banner').classList.remove('visible');
             return true;
         }
         return false;
     }
+
+    // Vérifier toutes les 100ms pendant 5 secondes
+    let checks = 0;
+    const maxChecks = 50;
+    const checkInterval = setInterval(() => {
+        if (checkAbcjs()) {
+            clearInterval(checkInterval);
+        } else {
+            checks++;
+            if (checks >= maxChecks) {
+                clearInterval(checkInterval);
+                document.getElementById('status-msg').textContent = "⚠️ Échec chargement";
+                document.getElementById('status-msg').className = "status-msg status-err";
+                document.getElementById('error-msg').textContent = "Impossible de charger abcjs. Cliquez sur le bouton bleu 'Tester abcjs'.";
+                document.getElementById('error-banner').classList.add('visible');
+            }
+        }
+    }, 100);
 
     function loadFile(input) {
         const file = input.files[0];
@@ -150,12 +192,8 @@
         
         if (hasAbcjs) {
             renderScore(piece.content);
-            document.getElementById('status-msg').textContent = "✅ Partition affichée";
-            document.getElementById('status-msg').className = "status-msg status-ok";
         } else {
             renderFallback(piece.content);
-            document.getElementById('status-msg').textContent = "⚠️ Mode texte (abcjs non chargé)";
-            document.getElementById('status-msg').className = "status-msg status-err";
         }
     }
 
@@ -196,16 +234,6 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-
-    window.onload = function() {
-        if (checkAbcjs()) {
-            document.getElementById('status-msg').textContent = "✅ Prêt";
-            document.getElementById('status-msg').className = "status-msg status-ok";
-        } else {
-            document.getElementById('status-msg').textContent = "⚠️ Pas d'abcjs";
-            document.getElementById('status-msg').className = "status-msg status-err";
-        }
-    };
 </script>
 
 </body>
