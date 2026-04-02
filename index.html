@@ -2,114 +2,98 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Éditeur ABC - Version Légère (100% Fiable)</title>
-    <!-- Version ULTRA-LÉGÈRE de abcjs (Core) qui passe partout -->
-    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-core-min.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur ABC - 100% Local</title>
     <style>
         :root { --primary: #4CAF50; --bg: #f4f4f9; --code-bg: #1e1e1e; --code-text: #d4d4d4; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        header { background: white; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        h1 { margin: 0; font-size: 1.2rem; }
-        .btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
-        .btn-test { background: #2196F3; }
+        header { background: white; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        h1 { margin: 0; font-size: 1.2rem; color: #333; }
+        .btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-size: 0.9rem; transition: background 0.2s; }
+        .btn:hover { background: #45a049; }
+        
         .main-container { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
-        .sidebar { width: 220px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 10px; background: #f0f0f0; font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid #ddd; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 12px 15px; background: #f8f9fa; font-weight: 600; font-size: 0.9rem; border-bottom: 1px solid #eee; color: #555; }
         #piece-list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
-        #piece-list li { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #piece-list li:hover { background: #f9f9f9; }
-        #piece-list li.active { background: #e3f2fd; border-left: 3px solid var(--primary); }
-        .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .score-area { flex: 1; padding: 20px; overflow: auto; background: white; display: flex; justify-content: center; align-items: flex-start; border-bottom: 1px solid #ddd; }
-        #abc-visual { width: 100%; max-width: 1000px; min-height: 100px; }
-        .empty-state { color: #888; text-align: center; margin-top: 50px; font-style: italic; }
-        .code-area { height: 40%; border-top: 1px solid #ddd; display: flex; flex-direction: column; background: var(--code-bg); }
-        .code-header { padding: 8px 15px; background: #2d2d2d; color: #ccc; font-size: 0.8rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
-        #abc-code { flex: 1; background: var(--code-bg); color: var(--code-text); border: none; padding: 15px; font-family: 'Consolas', monospace; font-size: 0.9rem; resize: none; outline: none; line-height: 1.5; width: 100%; box-sizing: border-box; }
-        .status-msg { font-size: 0.8rem; }
-        .status-ok { color: #4CAF50; }
-        .status-err { color: #ff4444; }
-        .error-banner { background: #ffe6e6; color: #cc0000; padding: 10px; text-align: center; font-size: 0.9rem; display: none; }
-        .error-banner.visible { display: block; }
+        #piece-list li { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #444; }
+        #piece-list li:hover { background: #f1f1f1; }
+        #piece-list li.active { background: #e8f5e9; border-left: 4px solid var(--primary); font-weight: 600; color: #2e7d32; }
+        
+        /* Content Area */
+        .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+        
+        /* Score Visualization */
+        .score-area { flex: 1; padding: 20px; overflow: auto; background: white; display: flex; justify-content: center; align-items: flex-start; border-bottom: 1px solid #ddd; position: relative; }
+        #abc-visual { width: 100%; max-width: 1000px; min-height: 200px; }
+        .empty-state { color: #999; text-align: center; margin-top: 60px; font-style: italic; font-size: 1.1rem; }
+        
+        /* Code Editor */
+        .code-area { height: 40%; border-top: 1px solid #ccc; display: flex; flex-direction: column; background: var(--code-bg); flex-shrink: 0; }
+        .code-header { padding: 8px 15px; background: #252526; color: #ccc; font-size: 0.85rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        #abc-code { flex: 1; background: var(--code-bg); color: var(--code-text); border: none; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 1rem; resize: none; outline: none; line-height: 1.5; width: 100%; box-sizing: border-box; white-space: pre; }
+        #abc-code:focus { background: #2a2a2a; }
+        
+        .status-msg { font-size: 0.85rem; font-weight: 500; }
+        .status-ok { color: #81c784; }
+        .status-err { color: #e57373; }
+
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
-            .sidebar { width: 100%; height: 150px; order: 2; }
-            .content { height: calc(100% - 150px); order: 1; }
-            .code-area { height: 30%; }
-            .score-area { height: 70%; }
+            .sidebar { width: 100%; height: 180px; order: 2; }
+            .content { height: calc(100% - 180px); order: 1; }
+            .code-area { height: 35%; }
         }
     </style>
 </head>
 <body>
 
-<div id="error-banner" class="error-banner">
-    Erreur: <span id="error-msg"></span>
-</div>
-
 <header>
-    <h1>🎵 Éditeur ABC (Léger)</h1>
+    <h1>🎵 Éditeur ABC (Local)</h1>
     <div>
-        <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir</button>
+        <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir .abc</button>
         <button class="btn" onclick="saveFile()">💾 Sauvegarder</button>
-        <button class="btn btn-test" onclick="forceCheckAbcjs()">🧪 Vérifier abcjs</button>
-        <input type="file" id="file-input" accept=".abc" style="display: none;" onchange="loadFile(this)">
+        <input type="file" id="file-input" accept=".abc,.txt" style="display: none;" onchange="loadFile(this)">
     </div>
 </header>
 
 <div class="main-container">
     <div class="sidebar">
-        <div class="sidebar-header">Liste des Morceaux</div>
+        <div class="sidebar-header">Morceaux trouvés</div>
         <ul id="piece-list"></ul>
     </div>
 
     <div class="content">
         <div class="score-area">
             <div id="abc-visual">
-                <div class="empty-state">Ouvrez un fichier .abc pour voir la partition</div>
+                <div class="empty-state">Ouvrez un fichier .abc ou collez du code ci-dessous pour voir la partition</div>
             </div>
         </div>
 
         <div class="code-area">
             <div class="code-header">
-                <span>Code ABC (Modifiable)</span>
-                <span id="status-msg" class="status-msg">Chargement...</span>
+                <span>Code ABC (Éditable)</span>
+                <span id="status-msg" class="status-msg">Prêt</span>
             </div>
-            <textarea id="abc-code" placeholder="Le code ABC apparaîtra ici..."></textarea>
+            <textarea id="abc-code" placeholder="Collez votre code ABC ici...
+Exemple:
+X:1
+T:Au clair de la lune
+M:4/4
+L:1/4
+K:C
+C D E C | E F E2 | ..."></textarea>
         </div>
     </div>
 </div>
 
 <script>
     let allPieces = [];
-    
-    function checkAbcjs() {
-        if (typeof abcjs !== 'undefined') {
-            document.getElementById('status-msg').textContent = "✅ abcjs chargé (Partition prête)";
-            document.getElementById('status-msg').className = "status-msg status-ok";
-            document.getElementById('error-banner').classList.remove('visible');
-            return true;
-        } else {
-            document.getElementById('status-msg').textContent = "⚠️ abcjs non chargé (Mode texte)";
-            document.getElementById('status-msg').className = "status-msg status-err";
-            document.getElementById('error-msg').textContent = "Le chargement de la bibliothèque a échoué. Cliquez sur 'Vérifier abcjs'.";
-            document.getElementById('error-banner').classList.add('visible');
-            return false;
-        }
-    }
+    let currentPieceIndex = -1;
 
-    function forceCheckAbcjs() {
-        if (checkAbcjs()) {
-            alert("✅ abcjs est chargé ! Vous pouvez maintenant ouvrir un fichier.");
-        } else {
-            alert("⚠️ abcjs n'est toujours pas chargé. Vérifiez votre connexion internet et désactivez les bloqueurs de publicités.");
-        }
-    }
-
-    window.onload = function() {
-        checkAbcjs();
-    };
+    // --- GESTION DES FICHIERS ---
 
     function loadFile(input) {
         const file = input.files[0];
@@ -124,8 +108,35 @@
             } else {
                 alert("Aucun morceau trouvé. Vérifiez que le fichier contient des lignes 'X:'.");
             }
+            // Reset input so same file can be selected again if needed
+            input.value = '';
         };
         reader.readAsText(file);
+    }
+
+    function saveFile() {
+        if (allPieces.length === 0) {
+            alert("Rien à sauvegarder.");
+            return;
+        }
+        
+        // Reconstruire le contenu complet
+        let fullContent = "";
+        allPieces.forEach((p, index) => {
+            // On prend le contenu actuel si c'est le morceau sélectionné, sinon l'original
+            const content = (index === currentPieceIndex) ? document.getElementById('abc-code').value : p.content;
+            fullContent += "X:" + p.num + "\n" + content + "\n\n";
+        });
+
+        const blob = new Blob([fullContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "partition.abc";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     function parsePieces(content) {
@@ -133,6 +144,8 @@
         const list = document.getElementById('piece-list');
         list.innerHTML = '';
 
+        // Regex pour séparer les morceaux par "X:"
+        // On garde le contenu entre deux X: ou jusqu'à la fin
         const regex = /X:(\d+)\s*([\s\S]*?)(?=X:\d+|$)/g;
         let match;
         let index = 0;
@@ -141,80 +154,363 @@
             const num = match[1];
             const block = match[2].trim();
             
-            const titleMatch = block.match(/T:(.+?)(?:\n|$)/);
-            const title = titleMatch ? titleMatch[1].trim() : `Morceau ${num}`;
+            const titleMatch = block.match(/T:(.+?)(?:\n|$)/i);
+            const title = titleMatch ? titleMatch[1].trim() : `Morceau sans titre ${num}`;
             
-            const compMatch = block.match(/C:(.+?)(?:\n|$)/);
+            const compMatch = block.match(/C:(.+?)(?:\n|$)/i);
             const comp = compMatch ? compMatch[1].trim() : '';
 
             allPieces.push({ num, title, comp, content: block });
 
             const li = document.createElement('li');
-            li.textContent = `${num}. ${title} ${comp ? '(' + comp + ')' : ''}`;
+            li.textContent = `${num}. ${title} ${comp ? '- ' + comp : ''}`;
             li.onclick = () => selectPiece(index);
             li.dataset.index = index;
             list.appendChild(li);
             index++;
         }
+        
+        updateStatus(` ${allPieces.length} morceau(x) chargé(s)`, 'ok');
     }
 
     function selectPiece(index) {
         if (index < 0 || index >= allPieces.length) return;
         
+        currentPieceIndex = index;
         const piece = allPieces[index];
         
+        // Mise à jour UI liste
         const listItems = document.getElementById('piece-list').children;
         for (let item of listItems) item.classList.remove('active');
         if(listItems[index]) listItems[index].classList.add('active');
 
+        // Mise à jour éditeur
         document.getElementById('abc-code').value = piece.content;
         
-        const isAbcjsReady = checkAbcjs();
-        
-        if (isAbcjsReady) {
-            renderScore(piece.content);
-        } else {
-            renderFallback(piece.content);
-        }
+        // Rendu
+        renderScore(piece.content);
     }
+
+    // Écouteur pour mise à jour en temps réel si l'utilisateur modifie le texte
+    document.getElementById('abc-code').addEventListener('input', (e) => {
+        if (currentPieceIndex >= 0) {
+            allPieces[currentPieceIndex].content = e.target.value;
+            renderScore(e.target.value);
+        }
+    });
+
+    function updateStatus(msg, type) {
+        const el = document.getElementById('status-msg');
+        el.textContent = msg;
+        el.className = `status-msg status-${type}`;
+        setTimeout(() => {
+            if(el.textContent === msg) el.textContent = "Prêt";
+        }, 3000);
+    }
+
+    // --- MOTEUR DE DESSIN ABC ---
 
     function renderScore(abc) {
-        const target = document.getElementById('abc-visual');
-        target.innerHTML = '';
-
-        if (!abc.trim()) {
-            target.innerHTML = '<div class="empty-state">Code vide</div>';
+        const container = document.getElementById('abc-visual');
+        container.innerHTML = '';
+        
+        if (!abc || !abc.trim()) {
+            container.innerHTML = '<div class="empty-state">Code vide</div>';
             return;
         }
 
-        try {
-            abcjs.renderAbc(target, abc);
-        } catch (e) {
-            target.innerHTML = '<div class="empty-state" style="color:red;">Erreur: ' + e.message + '</div>';
+        // 1. Analyse des en-têtes (Key, Meter, Length)
+        let key = 'C'; // Par défaut
+        let meter = '4/4';
+        let unitLength = 1/4; // Noir par défaut (en valeur relative)
+        
+        const lines = abc.split('\n');
+        let musicStartLine = 0;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.startsWith('K:')) key = line.substring(2).trim();
+            if (line.startsWith('M:')) meter = line.substring(2).trim();
+            if (line.startsWith('L:')) {
+                // Parsing simple de L:1/8, L:1/4 etc.
+                const parts = line.substring(2).trim().split('/');
+                if (parts.length === 2) unitLength = parseInt(parts[0]) / parseInt(parts[1]);
+                else if (parts.length === 1) unitLength = parseInt(parts[0]);
+            }
+            if (line.length > 0 && !line.includes(':')) {
+                musicStartLine = i;
+                break;
+            }
+            // Si la ligne contient de la musique (pas de deux-points ou après les headers)
+            if (line.match(/[A-Ga-gz]/)) {
+                musicStartLine = i;
+                break;
+            }
         }
-    }
 
-    function renderFallback(abc) {
-        const target = document.getElementById('abc-visual');
-        target.innerHTML = '<div class="empty-state" style="text-align:left; font-family:monospace; white-space:pre;">' + abc + '</div>';
-    }
+        // Extraction de la chaîne de musique (ignore les lignes de commentaires %)
+        let musicString = "";
+        for (let i = musicStartLine; i < lines.length; i++) {
+            let l = lines[i];
+            if (!l.startsWith('%')) {
+                // Enlever les commentaires en fin de ligne
+                const commentIdx = l.indexOf('%');
+                if (commentIdx !== -1) l = l.substring(0, commentIdx);
+                musicString += l + " ";
+            }
+        }
 
-    function saveFile() {
-        const content = document.getElementById('abc-code').value;
-        if (!content) {
-            alert("Rien à sauvegarder !");
+        if (!musicString.trim()) {
+            container.innerHTML = '<div class="empty-state">Aucune note trouvée dans le corps du morceau.</div>';
             return;
         }
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'partition_abc.abc';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+
+        // 2. Création du SVG
+        const svgWidth = 800;
+        const svgHeight = 250;
+        const marginX = 60; // Pour la clé
+        const staffY = 120; // Ligne du milieu (Si) -> Non, en ABC, la portée standard est 5 lignes.
+        // Définissons la ligne du bas comme référence.
+        // Portée standard : 5 lignes. Espacement 10px.
+        // Ligne 1 (bas) = E (Mi) ? Non, clé de Sol.
+        // Ligne 1 (bas) = E4. Ligne 2 = G4. Ligne 3 = B4. Ligne 4 = D5. Ligne 5 = F5.
+        // Milieu de la portée (Ligne 3) = B4.
+        
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", svgHeight);
+        svg.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+        svg.style.background = "#fff";
+        svg.style.boxShadow = "0 2px 10px rgba(0,0,0,0.05)";
+        svg.style.borderRadius = "4px";
+
+        // Dessin des 5 lignes
+        const lineSpacing = 10;
+        const topLineY = 100; // Ligne du haut (F5)
+        
+        for (let i = 0; i < 5; i++) {
+            const y = topLineY + (i * lineSpacing);
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", marginX - 10);
+            line.setAttribute("y1", y);
+            line.setAttribute("x2", svgWidth - 20);
+            line.setAttribute("y2", y);
+            line.setAttribute("stroke", "#000");
+            line.setAttribute("stroke-width", "1.2");
+            svg.appendChild(line);
+        }
+
+        // Dessin de la Clé de Sol
+        const clefGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        clefGroup.setAttribute("transform", `translate(${marginX - 40}, 65) scale(0.035)`);
+        const clefPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        // Chemin optimisé pour clé de sol
+        clefPath.setAttribute("d", "M 115 150 C 115 150 115 350 230 350 C 310 350 310 250 230 250 C 180 250 160 280 160 310 C 160 380 230 420 280 420 C 360 420 400 350 400 250 C 400 100 300 -50 180 -50 C 100 -50 50 20 50 100 C 50 250 150 450 300 450 C 450 450 520 300 520 250 L 480 250 C 480 280 450 350 350 350 C 250 350 200 250 200 150 C 200 80 240 50 280 50 C 320 50 350 80 350 150 C 350 250 300 350 200 350 C 120 350 115 250 115 150 Z");
+        clefPath.setAttribute("fill", "#000");
+        clefGroup.appendChild(clefPath);
+        svg.appendChild(clefGroup);
+
+        // 3. Parsing et Dessin des notes
+        // Mapping des notes (Clé de Sol)
+        // Positions relatives par rapport à la ligne du milieu (B4 = 0)
+        // Lignes: F5(4), D5(2), B4(0), G4(-2), E4(-4)
+        // Interlignes: E5(3), C5(1), A4(-1), F4(-3)
+        // Aiguës: G5(6), A5(7)... Graves: D4(-5), C4(-6 "Do central")
+        
+        const noteMap = {
+            'C': -6, 'D': -5, 'E': -4, 'F': -3, 'G': -2, 'A': -1, 'B': 0,
+            'c': 1, 'd': 2, 'e': 3, 'f': 4, 'g': 5, 'a': 6, 'b': 7,
+            'c\'': 8, 'd\'': 9 // Gestion basique des octaves supérieures
+        };
+
+        let currentX = marginX + 20;
+        const startX = currentX;
+        const maxLineWidth = svgWidth - 40;
+
+        // Nettoyage de la chaîne : enlever les espaces superflus mais garder la structure
+        // On itère caractère par caractère ou token par token
+        // Simplification : on traite les tokens séparés par des espaces ou barres de mesure
+        
+        // Tokenisation basique
+        const tokens = musicString.match(/([A-Ga-gz][\^_=]?[',]*[0-9]*|[:|])/g);
+        
+        if (!tokens) return;
+
+        tokens.forEach(token => {
+            if (token === '|') {
+                // Barre de mesure
+                const bar = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                bar.setAttribute("x1", currentX - 5);
+                bar.setAttribute("y1", topLineY - 5);
+                bar.setAttribute("x2", currentX - 5);
+                bar.setAttribute("y2", topLineY + 45);
+                bar.setAttribute("stroke", "#000");
+                bar.setAttribute("stroke-width", "2");
+                svg.appendChild(bar);
+                currentX += 10;
+                return;
+            }
+            if (token === ':') return; // Ignorer les deux points isolés
+
+            // Analyse de la note
+            let pitchChar = token[0];
+            let accidental = '';
+            let octaveModifier = '';
+            let durationStr = '';
+            
+            let i = 1;
+            // Altération
+            if (i < token.length && ['^', '_', '='].includes(token[i])) {
+                accidental = token[i];
+                i++;
+            }
+            // Octave (', ou ') - simplifié dans le map via la casse, mais ABC utilise ' et ,
+            // Dans notre map simplifié : Majuscule = grave, Minuscule = aigu. 
+            // ABC standard : C (Do grave), c (Do milieu), c' (Do aigu)
+            // Ajustons le parsing pour gérer ' et ,
+            while (i < token.length && (token[i] === "'" || token[i] === ',')) {
+                octaveModifier += token[i];
+                i++;
+            }
+            // Durée
+            while (i < token.length && !isNaN(token[i])) {
+                durationStr += token[i];
+                i++;
+            }
+
+            // Calcul position Y
+            let basePos = noteMap[pitchChar] || 0;
+            
+            // Ajustement octave
+            if (octaveModifier) {
+                for (let char of octaveModifier) {
+                    if (char === "'") basePos += 7;
+                    if (char === ",") basePos -= 7;
+                }
+            }
+            
+            // Conversion position relative -> Y SVG
+            // B4 (0) est à topLineY + 20 (Ligne 3)
+            // Chaque pas (ligne ou interligne) = 5px (demi-espacement) ? Non, espacement ligne=10.
+            // Donc 1 unité de note = 5px.
+            const noteY = (topLineY + 20) - (basePos * 5);
+
+            // Dessin
+            if (pitchChar.toLowerCase() !== 'z') { // Pas de pause
+                const noteGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                
+                // Tête de note
+                const head = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                head.setAttribute("cx", currentX);
+                head.setAttribute("cy", noteY);
+                head.setAttribute("rx", "6");
+                head.setAttribute("ry", "4.5");
+                head.setAttribute("fill", "#000");
+                head.setAttribute("transform", `rotate(-15, ${currentX}, ${noteY})`);
+                noteGroup.appendChild(head);
+
+                // Hampe (Stem)
+                // Si note en dessous de la ligne médiane (B4), hampe vers le haut. Sinon vers le bas.
+                // Ligne médiane Y = topLineY + 20.
+                const stemUp = noteY > (topLineY + 20);
+                const stemStartX = stemUp ? currentX + 5 : currentX - 5;
+                const stemEndY = stemUp ? noteY - 35 : noteY + 35;
+                
+                // Si la note est très grave ou très aiguë, on ajuste un peu, mais restons simple
+                const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                stem.setAttribute("x1", stemStartX);
+                stem.setAttribute("y1", noteY);
+                stem.setAttribute("x2", stemStartX);
+                stem.setAttribute("y2", stemEndY);
+                stem.setAttribute("stroke", "#000");
+                stem.setAttribute("stroke-width", "1.5");
+                noteGroup.appendChild(stem);
+
+                // Crochet (Croche) si durée courte (simplifié: si chiffre > 1 ou 8?)
+                // ABC: 1/8 est souvent noté sans chiffre si L:1/8. 
+                // Si on voit un '2' (double croche) ou si la note est courte.
+                // Pour cet exemple, on ne dessine pas les crochets complexes, juste des noires/blanches.
+                // Si durationStr contient '2' ou plus, on pourrait ajouter un crochet.
+                
+                // Altération (Dièse/Bémol)
+                if (accidental === '^') {
+                    const sharp = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    sharp.setAttribute("x", currentX - 12);
+                    sharp.setAttribute("y", noteY + 4);
+                    sharp.setAttribute("font-size", "14");
+                    sharp.setAttribute("font-weight", "bold");
+                    sharp.textContent = "#";
+                    noteGroup.appendChild(sharp);
+                } else if (accidental === '_') {
+                    const flat = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    flat.setAttribute("x", currentX - 12);
+                    flat.setAttribute("y", noteY + 4);
+                    flat.setAttribute("font-size", "14");
+                    flat.setAttribute("font-weight", "bold");
+                    flat.textContent = "b";
+                    noteGroup.appendChild(flat);
+                }
+
+                svg.appendChild(noteGroup);
+            } else {
+                // Pause (simplifiée : un rectangle sur la ligne médiane)
+                const rest = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                // Symbole de pause simplifié
+                rest.setAttribute("d", `M ${currentX-5} ${topLineY+15} h 10 v 10 h -10 Z`); 
+                rest.setAttribute("fill", "#000");
+                svg.appendChild(rest);
+            }
+
+            // Avancer X
+            currentX += 35; // Espacement entre notes
+
+            // Retour à la ligne si trop long
+            if (currentX > maxLineWidth) {
+                currentX = startX;
+                // On pourrait dupliquer la portée ici pour une vraie partition multi-lignes
+                // Pour cette démo, on s'arrête ou on écrase (simple visualiseur)
+                // Ajoutons une barre de fin et on arrête pour ne pas sortir du SVG
+                const endBar = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                endBar.setAttribute("x1", svgWidth - 30);
+                endBar.setAttribute("y1", topLineY - 5);
+                endBar.setAttribute("x2", svgWidth - 30);
+                endBar.setAttribute("y2", topLineY + 45);
+                endBar.setAttribute("stroke", "#000");
+                endBar.setAttribute("stroke-width", "3");
+                svg.appendChild(endBar);
+                
+                const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                txt.setAttribute("x", svgWidth/2);
+                txt.setAttribute("y", svgHeight - 20);
+                txt.setAttribute("text-anchor", "middle");
+                txt.setAttribute("fill", "#999");
+                txt.setAttribute("font-size", "12");
+                txt.textContent = "(Partition tronquée - défilez horizontalement ou réduisez la taille)";
+                // svg.appendChild(txt); // Optionnel
+            }
+        });
+
+        container.appendChild(svg);
+        updateStatus("Rendu effectué", "ok");
     }
+
+    // Initialisation avec un exemple si rien n'est chargé
+    window.onload = () => {
+        const demoABC = `X:1
+T:Au Clair de la Lune
+M:4/4
+L:1/4
+K:C
+C D E C | E F E2 | D E F D | F G F2 |
+C G, C E | C D E2 | F E D C | G,3 z |`;
+        
+        // On remplit l'éditeur mais on ne déclenche pas le rendu tant que l'utilisateur n'a pas cliqué ou loaded
+        // Pour la démo, affichons le rendu directement
+        document.getElementById('abc-code').value = demoABC;
+        parsePieces(demoABC);
+        if(allPieces.length > 0) selectPiece(0);
+    };
+
 </script>
 
 </body>
