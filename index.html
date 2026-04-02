@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Éditeur ABC - Multi-Plateforme</title>
+    <!-- Chargement de abcjs pour le rendu des partitions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"></script>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --bg: #f4f4f9;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+            --border: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* En-tête */
+        header {
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; color: #333; }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:active { transform: scale(0.98); }
+
+        /* Zone principale */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* Liste des morceaux (Gauche) */
+        .sidebar {
+            width: 220px;
+            background: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 10px;
+            background: #f0f0f0;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #piece-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #piece-list li {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #piece-list li:hover { background: #f9f9f9; }
+        #piece-list li.active { background: #e3f2fd; border-left: 3px solid var(--primary); }
+
+        /* Zone centrale : Code + Partition */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Partition (Haut) */
+        .score-area {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #abc-visual {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .empty-state {
+            color: #888;
+            text-align: center;
+            margin-top: 50px;
+            font-style: italic;
+        }
+
+        /* Code (Bas) */
+        .code-area {
+            height: 40%;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+        }
+
+        .code-header {
+            padding: 8px 15px;
+            background: #2d2d2d;
+            color: #ccc;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #abc-code {
+            flex: 1;
+            background: var(--code-bg);
+            color: var(--code-text);
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Messages d'erreur */
+        .error-msg {
+            color: #ff4444;
+            font-size: 0.8rem;
+            padding: 5px 15px;
+            background: #ffe6e6;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+
+        /* Responsive Mobile */
+        @media (max-width: 768px) {
+            .main-container { flex
