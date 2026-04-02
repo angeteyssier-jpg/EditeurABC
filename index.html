@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Éditeur ABC - Version Finale</title>
-    <!-- Chargement via UNPKG (plus fiable que cdnjs sur GitHub) -->
+    <title>Éditeur ABC - Correction Finale</title>
+    <!-- Chargement via UNPKG -->
     <script src="https://unpkg.com/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
     
     <style>
@@ -13,6 +13,7 @@
         header { background: white; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; font-size: 1.2rem; }
         .btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .btn-test { background: #2196F3; }
         .main-container { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
         .sidebar { width: 220px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
         .sidebar-header { padding: 10px; background: #f0f0f0; font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid #ddd; }
@@ -52,8 +53,7 @@
     <div>
         <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir</button>
         <button class="btn" onclick="saveFile()">💾 Sauvegarder</button>
-        <!-- Bouton de test ajouté -->
-        <button class="btn" style="background:#2196F3" onclick="testAbcjs()">🧪 Tester abcjs</button>
+        <button class="btn btn-test" onclick="forceCheckAbcjs()">🧪 Vérifier abcjs</button>
         <input type="file" id="file-input" accept=".abc" style="display: none;" onchange="loadFile(this)">
     </div>
 </header>
@@ -74,7 +74,7 @@
         <div class="code-area">
             <div class="code-header">
                 <span>Code ABC (Modifiable)</span>
-                <span id="status-msg" class="status-msg">Chargement...</span>
+                <span id="status-msg" class="status-msg">Vérification...</span>
             </div>
             <textarea id="abc-code" placeholder="Le code ABC apparaîtra ici..."></textarea>
         </div>
@@ -83,54 +83,36 @@
 
 <script>
     let allPieces = [];
-    let hasAbcjs = false;
-    let isAbcjsLoading = true;
-
-    // Fonction de test manuelle
-    function testAbcjs() {
-        if (typeof abcjs !== 'undefined') {
-            hasAbcjs = true;
-            isAbcjsLoading = false;
-            document.getElementById('status-msg').textContent = "✅ abcjs chargé !";
-            document.getElementById('status-msg').className = "status-msg status-ok";
-            document.getElementById('error-banner').classList.remove('visible');
-            alert("abcjs est chargé ! Vous pouvez maintenant ouvrir un fichier.");
-        } else {
-            document.getElementById('error-msg').textContent = "abcjs n'est toujours pas chargé. Vérifiez la console (F12).";
-            document.getElementById('error-banner').classList.add('visible');
-        }
-    }
-
-    // Vérification continue (polling) pour s'assurer que abcjs est chargé
+    
+    // Fonction pour vérifier si abcjs est disponible
     function checkAbcjs() {
-        if (typeof abcjs !== 'undefined' && isAbcjsLoading) {
-            hasAbcjs = true;
-            isAbcjsLoading = false;
-            document.getElementById('status-msg').textContent = "✅ Prêt";
+        if (typeof abcjs !== 'undefined') {
+            document.getElementById('status-msg').textContent = "✅ abcjs chargé (Partition prête)";
             document.getElementById('status-msg').className = "status-msg status-ok";
             document.getElementById('error-banner').classList.remove('visible');
             return true;
+        } else {
+            document.getElementById('status-msg').textContent = "⚠️ abcjs non chargé (Mode texte)";
+            document.getElementById('status-msg').className = "status-msg status-err";
+            document.getElementById('error-msg').textContent = "Le chargement de la bibliothèque a échoué. Cliquez sur 'Vérifier abcjs'.";
+            document.getElementById('error-banner').classList.add('visible');
+            return false;
         }
-        return false;
     }
 
-    // Vérifier toutes les 100ms pendant 5 secondes
-    let checks = 0;
-    const maxChecks = 50;
-    const checkInterval = setInterval(() => {
+    // Fonction appelée par le bouton
+    function forceCheckAbcjs() {
         if (checkAbcjs()) {
-            clearInterval(checkInterval);
+            alert("✅ abcjs est chargé ! Vous pouvez maintenant ouvrir un fichier.");
         } else {
-            checks++;
-            if (checks >= maxChecks) {
-                clearInterval(checkInterval);
-                document.getElementById('status-msg').textContent = "⚠️ Échec chargement";
-                document.getElementById('status-msg').className = "status-msg status-err";
-                document.getElementById('error-msg').textContent = "Impossible de charger abcjs. Cliquez sur le bouton bleu 'Tester abcjs'.";
-                document.getElementById('error-banner').classList.add('visible');
-            }
+            alert("⚠️ abcjs n'est toujours pas chargé. Vérifiez votre connexion internet.");
         }
-    }, 100);
+    }
+
+    // Vérification initiale au chargement
+    window.onload = function() {
+        checkAbcjs();
+    };
 
     function loadFile(input) {
         const file = input.files[0];
@@ -190,7 +172,10 @@
 
         document.getElementById('abc-code').value = piece.content;
         
-        if (hasAbcjs) {
+        // Vérification CRITIQUE : on re-vérifie abcjs à chaque changement de morceau
+        const isAbcjsReady = checkAbcjs();
+        
+        if (isAbcjsReady) {
             renderScore(piece.content);
         } else {
             renderFallback(piece.content);
