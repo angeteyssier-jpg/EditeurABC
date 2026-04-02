@@ -3,346 +3,528 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Éditeur ABC - 100% Local (Corrigé)</title>
+    <title>Éditeur ABC Pro - Croches & Voltas</title>
     <style>
-        :root { --primary: #4CAF50; --bg: #f4f4f9; --code-bg: #1e1e1e; --code-text: #d4d4d4; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        header { background: white; padding: 10px 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        h1 { margin: 0; font-size: 1.2rem; color: #333; }
-        .btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-size: 0.9rem; transition: background 0.2s; }
-        .btn:hover { background: #45a049; }
-        
-        .main-container { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
-        
-        .sidebar { width: 250px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-header { padding: 12px 15px; background: #f8f9fa; font-weight: 600; font-size: 0.9rem; border-bottom: 1px solid #eee; color: #555; }
-        #piece-list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
-        #piece-list li { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #444; transition: background 0.1s; }
-        #piece-list li:hover { background: #f1f1f1; }
-        #piece-list li.active { background: #e8f5e9; border-left: 4px solid var(--primary); font-weight: 600; color: #2e7d32; }
-        
-        .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-        
-        .score-area { flex: 1; padding: 20px; overflow: auto; background: white; display: flex; justify-content: center; align-items: flex-start; border-bottom: 1px solid #ddd; position: relative; }
-        #abc-visual { width: 100%; max-width: 1000px; min-height: 200px; }
-        .empty-state { color: #999; text-align: center; margin-top: 60px; font-style: italic; font-size: 1.1rem; }
-        
-        .code-area { height: 40%; border-top: 1px solid #ccc; display: flex; flex-direction: column; background: var(--code-bg); flex-shrink: 0; }
-        .code-header { padding: 8px 15px; background: #252526; color: #ccc; font-size: 0.85rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        #abc-code { flex: 1; background: var(--code-bg); color: var(--code-text); border: none; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 1rem; resize: none; outline: none; line-height: 1.5; width: 100%; box-sizing: border-box; white-space: pre; }
-        #abc-code:focus { background: #2a2a2a; }
-        
-        .status-msg { font-size: 0.85rem; font-weight: 500; }
-        .status-ok { color: #81c784; }
-        .status-err { color: #e57373; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; background: #f0f2f5; }
+        header { background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; }
+        h1 { margin: 0; font-size: 1.2rem; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
+        .btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 8px; transition: background 0.2s; }
+        .btn:hover { background: #2980b9; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219150; }
 
-        @media (max-width: 768px) {
-            .main-container { flex-direction: column; }
-            .sidebar { width: 100%; height: 180px; order: 2; }
-            .content { height: calc(100% - 180px); order: 1; }
-            .code-area { height: 35%; }
-        }
+        .container { display: flex; flex: 1; overflow: hidden; }
+        
+        .sidebar { width: 300px; background: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 15px; background: #f8f9fa; font-weight: 600; color: #555; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        #piece-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
+        #piece-list li { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f5f5f5; font-size: 0.95rem; color: #444; transition: all 0.2s; }
+        #piece-list li:hover { background: #f0f7ff; color: #2980b9; }
+        #piece-list li.active { background: #e3f2fd; border-left: 4px solid #3498db; color: #1565C0; font-weight: 600; }
+
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .score-area { flex: 1; background: #fff; padding: 30px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; position: relative; }
+        #svg-container { background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 8px; padding: 40px; min-width: 800px; }
+
+        .editor-area { height: 35%; background: #1e1e1e; border-top: 1px solid #333; display: flex; flex-direction: column; }
+        .editor-header { background: #252526; color: #aaa; padding: 8px 15px; font-size: 0.85rem; display: flex; justify-content: space-between; font-family: monospace; }
+        #abc-code { flex: 1; background: #1e1e1e; color: #d4d4d4; border: none; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; resize: none; outline: none; line-height: 1.6; }
+
+        #status-bar { position: fixed; bottom: 20px; right: 20px; background: #2c3e50; color: #2ecc71; padding: 10px 15px; border-radius: 6px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; font-weight: 500; }
+        
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🎵 Éditeur ABC (Local)</h1>
+    <h1>🎵 Éditeur ABC <span style="font-size:0.8rem; color:#95a5a6; font-weight:normal;">| Croches, Voltas & Reprises</span></h1>
     <div>
-        <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir .abc</button>
-        <button class="btn" onclick="saveFile()">💾 Sauvegarder</button>
-        <input type="file" id="file-input" accept=".abc,.txt" style="display: none;" onchange="loadFile(this)">
+        <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir</button>
+        <button class="btn btn-success" onclick="saveFile()">💾 Sauvegarder</button>
+        <input type="file" id="file-input" accept=".abc,.txt" onchange="loadFile(this)">
     </div>
 </header>
 
-<div class="main-container">
+<div class="container">
     <div class="sidebar">
         <div class="sidebar-header">Morceaux</div>
         <ul id="piece-list"></ul>
     </div>
-
-    <div class="content">
+    
+    <div class="main">
         <div class="score-area">
-            <div id="abc-visual">
-                <div class="empty-state">Sélectionnez un morceau à gauche</div>
-            </div>
+            <div id="svg-container"></div>
         </div>
-
-        <div class="code-area">
-            <div class="code-header">
-                <span>Code ABC</span>
-                <span id="status-msg" class="status-msg">Prêt</span>
+        
+        <div class="editor-area">
+            <div class="editor-header">
+                <span>CODE ABC (Éditez pour mettre à jour)</span>
+                <span id="status-text">Prêt</span>
             </div>
-            <textarea id="abc-code" placeholder="Le code apparaîtra ici..."></textarea>
+            <textarea id="abc-code" placeholder="Collez votre code ABC ici..."></textarea>
         </div>
     </div>
 </div>
 
-<script>
-    let allPieces = [];
-    let currentPieceIndex = -1;
+<div id="status-bar">Prêt</div>
 
+<script>
+    let pieces = [];
+    let currentIdx = -1;
+
+    // --- GESTION FICHIERS ---
     function loadFile(input) {
         const file = input.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             parsePieces(e.target.result);
-            if (allPieces.length > 0) {
-                selectPiece(0);
-            } else {
-                alert("Aucun morceau trouvé (cherchez les lignes 'X:').");
-            }
-            input.value = '';
+            if (pieces.length > 0) selectPiece(0);
+            showStatus(`✅ ${pieces.length} morceau(x) chargé(s)`);
         };
         reader.readAsText(file);
+        input.value = '';
     }
 
     function saveFile() {
-        if (allPieces.length === 0) return alert("Rien à sauvegarder.");
+        if (pieces.length === 0) return alert("Rien à sauvegarder");
+        if (currentIdx >= 0) pieces[currentIdx].content = document.getElementById('abc-code').value;
         
-        // Mettre à jour le morceau actuel avant de sauvegarder
-        if (currentPieceIndex >= 0) {
-            allPieces[currentPieceIndex].content = document.getElementById('abc-code').value;
-        }
-
-        let fullContent = "";
-        allPieces.forEach(p => {
-            fullContent += "X:" + p.num + "\n" + p.content + "\n\n";
-        });
-
-        const blob = new Blob([fullContent], { type: "text/plain" });
+        let full = "";
+        pieces.forEach(p => full += `X:${p.id}\n${p.content}\n\n`);
+        
+        const blob = new Blob([full], {type: "text/plain"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = url;
-        a.download = "partition.abc";
-        document.body.appendChild(a);
+        a.href = url; a.download = "partition.abc";
         a.click();
-        document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        showStatus("💾 Fichier sauvegardé");
     }
 
+    // --- PARSING ---
     function parsePieces(content) {
-        allPieces = [];
+        pieces = [];
         const list = document.getElementById('piece-list');
         list.innerHTML = '';
-
-        // Regex robuste pour séparer les morceaux
+        
         const regex = /X:(\d+)\s*([\s\S]*?)(?=X:\d+|$)/g;
-        let match;
-        let index = 0;
-
+        let match, idx = 0;
+        
         while ((match = regex.exec(content)) !== null) {
-            const num = match[1];
+            const id = match[1];
             const block = match[2].trim();
-            
             const titleMatch = block.match(/T:(.+?)(?:\n|$)/i);
-            const title = titleMatch ? titleMatch[1].trim() : `Sans titre ${num}`;
+            const title = titleMatch ? titleMatch[1].trim() : `Morceau ${id}`;
             
-            const compMatch = block.match(/C:(.+?)(?:\n|$)/i);
-            const comp = compMatch ? compMatch[1].trim() : '';
-
-            allPieces.push({ num, title, comp, content: block });
-
+            pieces.push({ id, title, content: block });
+            
             const li = document.createElement('li');
-            li.textContent = `${num}. ${title}`;
-            li.onclick = () => selectPiece(index); // Binding explicite
-            li.dataset.index = index;
+            li.textContent = `${id}. ${title}`;
+            li.onclick = makeClickHandler(idx);
             list.appendChild(li);
-            index++;
+            idx++;
         }
-        updateStatus(`${allPieces.length} morceau(x)`, 'ok');
     }
 
-    // --- FONCTION CRITIQUE CORRIGÉE ---
+    function makeClickHandler(index) {
+        return function() { selectPiece(index); };
+    }
+
     function selectPiece(index) {
-        if (index < 0 || index >= allPieces.length) return;
+        if (index < 0 || index >= pieces.length) return;
+        currentIdx = index;
+        const piece = pieces[index];
         
-        // 1. Mise à jour de l'index global
-        currentPieceIndex = index;
-        const piece = allPieces[index];
+        document.querySelectorAll('#piece-list li').forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+        });
         
-        // 2. Mise à jour visuelle de la liste
-        const listItems = document.getElementById('piece-list').children;
-        for (let item of listItems) item.classList.remove('active');
-        if(listItems[index]) listItems[index].classList.add('active');
-
-        // 3. Mise à jour du texte dans l'éditeur
-        const codeArea = document.getElementById('abc-code');
-        codeArea.value = piece.content;
-        
-        // 4. FORCE LE DESSIN IMMÉDIAT avec le contenu du morceau sélectionné
-        // On ne se fie pas à l'événement 'input' qui pourrait ne pas se déclencher ici
-        renderScore(piece.content);
+        document.getElementById('abc-code').value = piece.content;
+        drawScore(piece.content);
+        showStatus(`🎵 ${piece.title}`);
     }
 
-    // Écouteur pour la saisie manuelle (mise à jour en temps réel)
     document.getElementById('abc-code').addEventListener('input', (e) => {
-        if (currentPieceIndex >= 0) {
-            // Mettre à jour la donnée en mémoire
-            allPieces[currentPieceIndex].content = e.target.value;
-            // Redessiner
-            renderScore(e.target.value);
+        if (currentIdx >= 0) {
+            pieces[currentIdx].content = e.target.value;
+            drawScore(e.target.value);
         }
     });
 
-    function updateStatus(msg, type) {
-        const el = document.getElementById('status-msg');
-        el.textContent = msg;
-        el.className = `status-msg status-${type}`;
-    }
-
-    // --- MOTEUR DE DESSIN (Inchangé, fonctionne bien) ---
-    function renderScore(abc) {
-        const container = document.getElementById('abc-visual');
+    // --- MOTEUR DE DESSIN AVANCÉ ---
+    function drawScore(abc) {
+        const container = document.getElementById('svg-container');
         container.innerHTML = '';
         
         if (!abc || !abc.trim()) {
-            container.innerHTML = '<div class="empty-state">Ce morceau est vide ou ne contient pas de notes.</div>';
+            container.innerHTML = '<div style="color:#999; text-align:center; padding:40px;">Code vide</div>';
             return;
         }
 
-        // Analyse en-têtes
-        let musicString = "";
-        const lines = abc.split('\n');
-        let musicStarted = false;
-        
-        for (let line of lines) {
-            const trimLine = line.trim();
-            if (!trimLine || trimLine.startsWith('%')) continue;
-            
-            // Si on trouve une ligne de musique (contient des notes)
-            if (trimLine.match(/[A-Ga-gz]/)) {
-                musicStarted = true;
+        // 1. Extraction et Tokenisation Avancée
+        let music = "";
+        abc.split('\n').forEach(line => {
+            line = line.trim();
+            if (line && !line.startsWith('%') && !line.match(/^[A-Z]:/)) {
+                music += line.split('%')[0] + " ";
             }
-            
-            if (musicStarted || trimLine.match(/[A-Ga-gz|]/)) {
-                // Ignorer les commentaires en fin de ligne
-                const cleanLine = trimLine.split('%')[0];
-                musicString += cleanLine + " ";
-            }
-        }
+        });
 
-        if (!musicString.trim()) {
-            container.innerHTML = '<div class="empty-state">Aucune note détectée dans ce morceau.</div>';
+        // Regex pour capturer : Notes, Barres composées, Voltas, Répétitions
+        // Capture: [A-Ga-gz][acc][oct][dur] OU |:[ OU :| OU [1 OU [2 OU |
+        const tokenRegex = /([A-Ga-gz][\^_=]?[',]*[0-9\/]*|:\||\|:|\[\d+|\[1|\[2|\|)/g;
+        const tokens = music.match(tokenRegex) || [];
+
+        if (tokens.length === 0) {
+            container.innerHTML = '<div style="color:#999; text-align:center; padding:40px;">Aucune note trouvée</div>';
             return;
         }
 
-        // Création SVG
-        const svgWidth = 800;
-        const svgHeight = 250;
-        const marginX = 60;
-        const topLineY = 100; 
+        const ns = "http://www.w3.org/2000/svg";
+        const svgWidth = 900;
+        const lineSpacing = 70; // ESPACEMENT ACCRU ENTRE PORTÉES (60px portée + 10px blanc)
+        const staffTopY = 50;
+        const leftMargin = 70;
         
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        // Estimation du nombre de lignes nécessaires
+        const maxNotesPerLine = 18; // Un peu moins pour laisser place aux barres doubles
+        const linesNeeded = Math.ceil(tokens.length / maxNotesPerLine) || 1;
+        const svgHeight = (linesNeeded * lineSpacing) + 60;
+
+        const svg = document.createElementNS(ns, "svg");
         svg.setAttribute("width", "100%");
         svg.setAttribute("height", svgHeight);
         svg.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
         svg.style.background = "#fff";
-        svg.style.boxShadow = "0 2px 10px rgba(0,0,0,0.05)";
 
-        // Portée
-        for (let i = 0; i < 5; i++) {
-            const y = topLineY + (i * 10);
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", marginX - 10);
-            line.setAttribute("y1", y);
-            line.setAttribute("x2", svgWidth - 20);
-            line.setAttribute("y2", y);
-            line.setAttribute("stroke", "#000");
-            line.setAttribute("stroke-width", "1.2");
-            svg.appendChild(line);
+        let cursorX = leftMargin;
+        let cursorY = staffTopY;
+        let notesOnLine = 0;
+        let noteQueue = []; // Pour gérer les liaisons de croches
+
+        // --- Fonctions de dessin ---
+
+        function drawStaff(y) {
+            // Lignes
+            for (let i = 0; i < 5; i++) {
+                const line = document.createElementNS(ns, "line");
+                line.setAttribute("x1", leftMargin - 10);
+                line.setAttribute("y1", y + (i * 10));
+                line.setAttribute("x2", svgWidth - 20);
+                line.setAttribute("y2", y + (i * 10));
+                line.setAttribute("stroke", "#000");
+                line.setAttribute("stroke-width", "1.2");
+                svg.appendChild(line);
+            }
+            // Clé de Sol (Unicode)
+            const clef = document.createElementNS(ns, "text");
+            clef.setAttribute("x", leftMargin - 50);
+            clef.setAttribute("y", y + 28);
+            clef.setAttribute("font-size", "55");
+            clef.setAttribute("font-family", "serif");
+            clef.textContent = "\uD834\uDD1E"; // 𝄞
+            svg.appendChild(clef);
         }
 
-        // Clé de Sol
-        const clefGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        clefGroup.setAttribute("transform", `translate(${marginX - 40}, 65) scale(0.035)`);
-        const clefPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        clefPath.setAttribute("d", "M 115 150 C 115 150 115 350 230 350 C 310 350 310 250 230 250 C 180 250 160 280 160 310 C 160 380 230 420 280 420 C 360 420 400 350 400 250 C 400 100 300 -50 180 -50 C 100 -50 50 20 50 100 C 50 250 150 450 300 450 C 450 450 520 300 520 250 L 480 250 C 480 280 450 350 350 350 C 250 350 200 250 200 150 C 200 80 240 50 280 50 C 320 50 350 80 350 150 C 350 250 300 350 200 350 C 120 350 115 250 115 150 Z");
-        clefPath.setAttribute("fill", "#000");
-        clefGroup.appendChild(clefPath);
-        svg.appendChild(clefGroup);
-
-        // Notes
-        const noteMap = { 'C': -6, 'D': -5, 'E': -4, 'F': -3, 'G': -2, 'A': -1, 'B': 0, 'c': 1, 'd': 2, 'e': 3, 'f': 4, 'g': 5, 'a': 6, 'b': 7 };
-        let currentX = marginX + 20;
-        const maxLineWidth = svgWidth - 40;
-        const startX = currentX;
-
-        const tokens = musicString.match(/([A-Ga-gz][\^_=]?[',]*[0-9]*|[:|])/g);
-        if (!tokens) return;
-
-        tokens.forEach(token => {
-            if (token === '|') {
-                const bar = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                bar.setAttribute("x1", currentX - 5); bar.setAttribute("y1", topLineY - 5);
-                bar.setAttribute("x2", currentX - 5); bar.setAttribute("y2", topLineY + 45);
-                bar.setAttribute("stroke", "#000"); bar.setAttribute("stroke-width", "2");
+        function drawBarLine(x, y, type) {
+            if (type === '|' || type === ':|' || type === '|:') {
+                const bar = document.createElementNS(ns, "line");
+                bar.setAttribute("x1", x - 5);
+                bar.setAttribute("y1", y - 5);
+                bar.setAttribute("x2", x - 5);
+                bar.setAttribute("y2", y + 45);
+                bar.setAttribute("stroke", "#000");
+                bar.setAttribute("stroke-width", type === '|' ? 2 : 4); // Barre double plus épaisse
                 svg.appendChild(bar);
-                currentX += 10;
+            }
+            
+            // Deuxième barre pour reprises
+            if (type === ':|') {
+                const bar2 = document.createElementNS(ns, "line");
+                bar2.setAttribute("x1", x - 8);
+                bar2.setAttribute("y1", y - 5);
+                bar2.setAttribute("x2", x - 8);
+                bar2.setAttribute("y2", y + 45);
+                bar2.setAttribute("stroke", "#000");
+                bar2.setAttribute("stroke-width", 1.5);
+                svg.appendChild(bar2);
+                
+                // Points de reprise
+                drawDot(x - 6, y + 10);
+                drawDot(x - 6, y + 30);
+            } else if (type === '|:') {
+                const bar2 = document.createElementNS(ns, "line");
+                bar2.setAttribute("x1", x - 2);
+                bar2.setAttribute("y1", y - 5);
+                bar2.setAttribute("x2", x - 2);
+                bar2.setAttribute("y2", y + 45);
+                bar2.setAttribute("stroke", "#000");
+                bar2.setAttribute("stroke-width", 1.5);
+                svg.appendChild(bar2);
+                
+                drawDot(x - 4, y + 10);
+                drawDot(x - 4, y + 30);
+            }
+        }
+
+        function drawDot(x, y) {
+            const circle = document.createElementNS(ns, "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", 2.5);
+            circle.setAttribute("fill", "#000");
+            svg.appendChild(circle);
+        }
+
+        function drawVolta(x, y, num) {
+            // Dessine un crochet de volta [1, [2...
+            const width = 40;
+            const height = 15;
+            const yOffset = -25; // Au dessus de la portée
+            
+            const path = document.createElementNS(ns, "path");
+            // Forme : Haut-Gauche -> Haut-Droite -> Bas-Droite (et un peu vers la gauche)
+            path.setAttribute("d", `M ${x} ${y + yOffset} L ${x + width} ${y + yOffset} L ${x + width} ${y + yOffset + height}`);
+            path.setAttribute("stroke", "#000");
+            path.setAttribute("stroke-width", "1.5");
+            path.setAttribute("fill", "none");
+            svg.appendChild(path);
+            
+            const text = document.createElementNS(ns, "text");
+            text.setAttribute("x", x + 5);
+            text.setAttribute("y", y + yOffset + 12);
+            text.setAttribute("font-size", "12");
+            text.setAttribute("font-weight", "bold");
+            text.setAttribute("font-family", "sans-serif");
+            text.textContent = num;
+            svg.appendChild(text);
+        }
+
+        function flushBeamGroup() {
+            // Si on a 2 notes ou plus dans la queue et qu'elles sont liées (croches/doubles)
+            if (noteQueue.length < 2) {
+                noteQueue = [];
                 return;
             }
-            if (token === ':') return;
 
-            let pitchChar = token[0];
-            let accidental = '';
-            let octaveModifier = '';
-            let i = 1;
-            
-            if (i < token.length && ['^', '_', '='].includes(token[i])) { accidental = token[i]; i++; }
-            while (i < token.length && (token[i] === "'" || token[i] === ',')) { octaveModifier += token[i]; i++; }
+            // Vérifier si toutes les notes du groupe ont une durée <= 1/8
+            const allBeamed = noteQueue.every(n => n.durationNum <= 8);
+            const isDouble = noteQueue.every(n => n.durationNum <= 16);
 
-            let basePos = noteMap[pitchChar] || 0;
-            if (octaveModifier) {
-                for (let char of octaveModifier) {
-                    if (char === "'") basePos += 7;
-                    if (char === ",") basePos -= 7;
+            if (allBeamed) {
+                // Dessiner la barre de liaison
+                const first = noteQueue[0];
+                const last = noteQueue[noteQueue.length - 1];
+                
+                const beamY = first.stemUp ? first.stemTopY - 5 : first.stemTopY + 5;
+                const lastBeamY = last.stemUp ? last.stemTopY - 5 : last.stemTopY + 5;
+                
+                const beam = document.createElementNS(ns, "rect");
+                // Calcul approximatif pour une barre droite ou légèrement inclinée
+                const height = isDouble ? 4 : 3; // Épaisseur
+                const offset = isDouble ? 8 : 0; // Décalage pour double barre
+                
+                // Barre principale
+                beam.setAttribute("x", first.x);
+                beam.setAttribute("y", Math.min(beamY, lastBeamY) - (isDouble ? 0 : 0)); 
+                beam.setAttribute("width", last.x - first.x);
+                beam.setAttribute("height", height);
+                beam.setAttribute("fill", "#000");
+                beam.setAttribute("transform", `rotate(${Math.atan2(lastBeamY - beamY, last.x - first.x) * 180 / Math.PI}, ${first.x}, ${beamY})`);
+                svg.appendChild(beam);
+
+                // Seconde barre si doubles croches
+                if (isDouble) {
+                    const beam2 = document.createElementNS(ns, "rect");
+                    beam2.setAttribute("x", first.x);
+                    beam2.setAttribute("y", Math.min(beamY, lastBeamY) - 8);
+                    beam2.setAttribute("width", last.x - first.x);
+                    beam2.setAttribute("height", height);
+                    beam2.setAttribute("fill", "#000");
+                    beam2.setAttribute("transform", `rotate(${Math.atan2(lastBeamY - beamY, last.x - first.x) * 180 / Math.PI}, ${first.x}, ${beamY - 8})`);
+                    svg.appendChild(beam2);
                 }
             }
+            noteQueue = [];
+        }
+
+        function drawNote(token, x, y, pitchChar) {
+            // Analyse durée
+            let durStr = token.match(/[0-9\/]+/);
+            let durationNum = 4; // Par défaut (noire)
+            if (durStr) {
+                const parts = durStr[0].split('/');
+                if (parts.length === 1) durationNum = parseInt(parts[0]);
+                else durationNum = parseInt(parts[0]) / parseInt(parts[1]); // Simplifié
+                // En ABC standard: 8 = croche, 16 = double. 
+                // Si le chiffre est seul: 8=croche. Si fraction 1/8, c'est idem.
+                // On normalise : si > 1 (ex: 8), on garde. Si < 1 (ex: 0.125), on inverse? 
+                // ABC simple: "A8" ou "A/8". 
+                // Pour simplifier ce moteur : si le token contient '8' ou '16', on le détecte.
+                if (token.includes('16')) durationNum = 16;
+                else if (token.includes('8') || token.includes('/8')) durationNum = 8;
+                else if (token.includes('2') && !token.includes('12')) durationNum = 2; // Blanche
+            }
+
+            const stemUp = y > (cursorY + 20);
+            const stemX = stemUp ? x + 5 : x - 5;
+            const stemLen = 35;
+            const stemTopY = stemUp ? y - stemLen : y + stemLen;
+
+            const g = document.createElementNS(ns, "g");
             
-            const noteY = (topLineY + 20) - (basePos * 5);
+            // Tête
+            const head = document.createElementNS(ns, "ellipse");
+            head.setAttribute("cx", x); head.setAttribute("cy", y);
+            head.setAttribute("rx", "6"); head.setAttribute("ry", "4.5");
+            head.setAttribute("fill", "#000");
+            head.setAttribute("transform", `rotate(-15, ${x}, ${y})`);
+            g.appendChild(head);
 
-            if (pitchChar.toLowerCase() !== 'z') {
-                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-                const head = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-                head.setAttribute("cx", currentX); head.setAttribute("cy", noteY);
-                head.setAttribute("rx", "6"); head.setAttribute("ry", "4.5");
-                head.setAttribute("fill", "#000");
-                head.setAttribute("transform", `rotate(-15, ${currentX}, ${noteY})`);
-                g.appendChild(head);
-
-                const stemUp = noteY > (topLineY + 20);
-                const stemX = stemUp ? currentX + 5 : currentX - 5;
-                const stemY = stemUp ? noteY - 35 : noteY + 35;
-                const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                stem.setAttribute("x1", stemX); stem.setAttribute("y1", noteY);
-                stem.setAttribute("x2", stemX); stem.setAttribute("y2", stemY);
+            // Hampe (sauf si ronde, durée > 4)
+            if (durationNum < 4) { 
+                const stem = document.createElementNS(ns, "line");
+                stem.setAttribute("x1", stemX); stem.setAttribute("y1", y);
+                stem.setAttribute("x2", stemX); stem.setAttribute("y2", stemTopY);
                 stem.setAttribute("stroke", "#000"); stem.setAttribute("stroke-width", "1.5");
                 g.appendChild(stem);
-
-                if (accidental === '^') {
-                    const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    txt.setAttribute("x", currentX - 12); txt.setAttribute("y", noteY + 4);
-                    txt.setAttribute("font-size", "14"); txt.setAttribute("font-weight", "bold");
-                    txt.textContent = "#";
-                    g.appendChild(txt);
-                }
-                svg.appendChild(g);
             }
-            currentX += 35;
-            if (currentX > maxLineWidth) currentX = startX;
+
+            // Gestion Croches (Beam)
+            if (durationNum <= 8) {
+                noteQueue.push({ x, stemUp, stemTopY, durationNum });
+            } else {
+                flushBeamGroup(); // Couper la liaison si on tombe sur une noire
+                // Si c'était une croche isolée (fin de phrase), on dessine un crochet
+                if (durationNum === 8) {
+                     const hook = document.createElementNS(ns, "path");
+                     const hookStart = stemUp ? stemTopY : stemTopY;
+                     const hookEnd = stemUp ? stemTopY + 15 : stemTopY - 15;
+                     const hookX = stemUp ? stemX + 5 : stemX - 5;
+                     // Courbe simple
+                     hook.setAttribute("d", `M ${stemX} ${stemTopY} Q ${hookX} ${hookEnd} ${hookX} ${hookEnd + (stemUp?5:-5)}`);
+                     hook.setAttribute("stroke", "#000"); hook.setAttribute("stroke-width", "3"); hook.setAttribute("fill", "none");
+                     g.appendChild(hook);
+                }
+            }
+
+            svg.appendChild(g);
+            return { stemTopY, durationNum, x };
+        }
+
+        // --- BOUCLE PRINCIPALE DE DESSIN ---
+        drawStaff(cursorY);
+
+        tokens.forEach((t, i) => {
+            // 1. Gestion Retour Ligne
+            if (notesOnLine > maxNotesPerLine) {
+                flushBeamGroup(); // Finir les liaisons en cours
+                cursorX = leftMargin;
+                cursorY += lineSpacing;
+                notesOnLine = 0;
+                drawStaff(cursorY);
+            }
+
+            // 2. Barres de mesure et Reprises
+            if (t === '|' || t === ':|' || t === '|:') {
+                flushBeamGroup();
+                drawBarLine(cursorX, cursorY, t);
+                cursorX += (t === '|' ? 15 : 25);
+                notesOnLine += 0.5;
+                return;
+            }
+
+            // 3. Voltas
+            if (t.startsWith('[') && !isNaN(parseInt(t[1]))) {
+                const num = t.replace('[', '');
+                drawVolta(cursorX, cursorY, num);
+                // Pas de déplacement X, c'est au dessus
+                return;
+            }
+
+            // 4. Notes
+            if (t.match(/[A-Ga-gz]/)) {
+                const pitchChar = t[0];
+                
+                // Calcul Position Y
+                const noteMap = {'C':-6,'D':-5,'E':-4,'F':-3,'G':-2,'A':-1,'B':0,'c':1,'d':2,'e':3,'f':4,'g':5,'a':6,'b':7};
+                let pos = noteMap[pitchChar] || 0;
+                
+                // Octaves
+                let octMatch = t.match(/[',]+/);
+                if (octMatch) {
+                    for (let c of octMatch[0]) pos += (c === "'" ? 7 : -7);
+                }
+                
+                const noteY = (cursorY + 20) - (pos * 5);
+                
+                // Pause ?
+                if (pitchChar.toLowerCase() === 'z') {
+                    flushBeamGroup();
+                    const rest = document.createElementNS(ns, "path");
+                    rest.setAttribute("d", `M ${cursorX-5} ${cursorY+20} h 10 v 10 h -10 Z`);
+                    rest.setAttribute("fill", "#000");
+                    svg.appendChild(rest);
+                    cursorX += 30;
+                    notesOnLine++;
+                    return;
+                }
+
+                // Dessin Note
+                const noteData = drawNote(t, cursorX, noteY, pitchChar);
+                
+                // Altération (simple)
+                if (t.includes('^')) {
+                    const sharp = document.createElementNS(ns, "text");
+                    sharp.setAttribute("x", cursorX - 12);
+                    sharp.setAttribute("y", noteY + 4);
+                    sharp.setAttribute("font-size", "14");
+                    sharp.setAttribute("font-weight", "bold");
+                    sharp.textContent = "#";
+                    svg.appendChild(sharp);
+                }
+
+                cursorX += 35;
+                notesOnLine++;
+            }
         });
 
+        flushBeamGroup(); // Finir les dernières liaisons
         container.appendChild(svg);
+        showStatus("🎨 Rendu avancé (Croches/Voltas)");
     }
 
-    // Initialisation
+    function showStatus(msg) {
+        const el = document.getElementById('status-bar');
+        const txt = document.getElementById('status-text');
+        el.textContent = msg;
+        if(txt) txt.textContent = msg.split(' ')[0];
+        setTimeout(() => { if(el.textContent === msg) el.textContent = "Prêt"; }, 3000);
+    }
+
+    // --- INIT ---
     window.onload = () => {
-        const demo = `X:1\nT:Morceau 1\nM:4/4\nL:1/4\nK:C\nC D E C | E F E2 |\nX:2\nT:Morceau 2\nM:3/4\nL:1/8\nK:G\nG2 A2 B2 | d4 c2 |`;
-        document.getElementById('abc-code').value = demo;
+        const demo = `X:1
+T:Exemple Complet
+M:4/4
+L:1/8
+K:C
+|: C2 D2 E2 F2 | G4 A4 | B8 c'd'c'b | a2g2 f2e2 |
+[1 d2c2 B2A2 | G4 z4 :|
+[2 d2c2 B2A2 | G4 C4 |]
+
+X:2
+T:Croches Doubles
+M:2/4
+L:1/16
+K:G
+G2AB cdef | g2ab c'd'e'f' | g'4 f'4 | e'2d'2 c'2b2 |`;
+
         parsePieces(demo);
-        if(allPieces.length > 0) selectPiece(0);
+        if(pieces.length > 0) selectPiece(0);
     };
 </script>
 
