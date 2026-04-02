@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Éditeur ABC - Offline</title>
+    <title>Éditeur ABC - GitHub Pages</title>
+    <!-- Chargement de abcjs via CDN (version optimisée) -->
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
     <style>
         :root { --primary: #4CAF50; --bg: #f4f4f9; --code-bg: #1e1e1e; --code-text: #d4d4d4; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -45,7 +47,7 @@
 </div>
 
 <header>
-    <h1>🎵 Éditeur ABC (Offline)</h1>
+    <h1>🎵 Éditeur ABC</h1>
     <div>
         <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir</button>
         <button class="btn" onclick="saveFile()">💾 Sauvegarder</button>
@@ -76,30 +78,10 @@
     </div>
 </div>
 
-<!-- 
-    NOTE IMPORTANTE : 
-    Pour que cela fonctionne SANS internet, il faut que le script abcjs soit inclus.
-    Comme je ne peux pas coller 2000 lignes de code ici, 
-    je vais utiliser une méthode de fallback : 
-    Si abcjs n'est pas chargé, on affiche le texte brut.
-    
-    POUR UNE VERSION 100% OFFLINE : 
-    Vous devez télécharger le fichier 'abcjs-basic-min.js' depuis cdnjs.com 
-    et le mettre dans le même dossier que ce fichier HTML, 
-    puis changer la ligne ci-dessous en : <script src="abcjs-basic-min.js"></script>
-    
-    MAIS pour l'instant, ce code utilise une version "Light" intégrée 
-    qui permet de visualiser les notes de base sans dépendance externe.
--->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.2.2/abcjs-basic-min.js"></script>
 <script>
-    // Version "Lite" de rendu ABC pour éviter les dépendances externes
-    // Si vous voulez le rendu professionnel, téléchargez abcjs-basic-min.js et mettez-le dans le dossier.
-    
     let allPieces = [];
     let hasAbcjs = false;
 
-    // Tentative de chargement d'abcjs (si présent localement ou via CDN)
     function checkAbcjs() {
         if (typeof abcjs !== 'undefined') {
             hasAbcjs = true;
@@ -171,10 +153,8 @@
             document.getElementById('status-msg').textContent = "✅ Partition affichée";
             document.getElementById('status-msg').className = "status-msg status-ok";
         } else {
-            // Fallback : afficher un message si abcjs n'est pas là
-            const target = document.getElementById('abc-visual');
-            target.innerHTML = '<div class="empty-state" style="color:blue;">⚠️ Mode Offline actif<br>Pour la partition professionnelle, téléchargez "abcjs-basic-min.js" et mettez-le dans le même dossier.</div>';
-            document.getElementById('status-msg').textContent = "⚠️ Mode texte uniquement";
+            renderFallback(piece.content);
+            document.getElementById('status-msg').textContent = "⚠️ Mode texte (abcjs non chargé)";
             document.getElementById('status-msg').className = "status-msg status-err";
         }
     }
@@ -195,6 +175,11 @@
         }
     }
 
+    function renderFallback(abc) {
+        const target = document.getElementById('abc-visual');
+        target.innerHTML = '<div class="empty-state" style="text-align:left; font-family:monospace; white-space:pre;">' + abc + '</div>';
+    }
+
     function saveFile() {
         const content = document.getElementById('abc-code').value;
         if (!content) {
@@ -212,7 +197,6 @@
         URL.revokeObjectURL(url);
     }
 
-    // Vérification initiale
     window.onload = function() {
         if (checkAbcjs()) {
             document.getElementById('status-msg').textContent = "✅ Prêt";
