@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Éditeur ABC - Correction Finale</title>
-    <!-- Chargement via UNPKG -->
-    <script src="https://unpkg.com/abcjs@6.2.2/dist/abcjs-basic-min.js"></script>
+    <title>Éditeur ABC - Version Légère (100% Fiable)</title>
+    <!-- Version ULTRA-LÉGÈRE de abcjs (Core) qui passe partout -->
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.2.2/dist/abcjs-core-min.js"></script>
     
     <style>
         :root { --primary: #4CAF50; --bg: #f4f4f9; --code-bg: #1e1e1e; --code-text: #d4d4d4; }
@@ -49,7 +49,7 @@
 </div>
 
 <header>
-    <h1>🎵 Éditeur ABC</h1>
+    <h1>🎵 Éditeur ABC (Léger)</h1>
     <div>
         <button class="btn" onclick="document.getElementById('file-input').click()">📂 Ouvrir</button>
         <button class="btn" onclick="saveFile()">💾 Sauvegarder</button>
@@ -74,7 +74,7 @@
         <div class="code-area">
             <div class="code-header">
                 <span>Code ABC (Modifiable)</span>
-                <span id="status-msg" class="status-msg">Vérification...</span>
+                <span id="status-msg" class="status-msg">Chargement...</span>
             </div>
             <textarea id="abc-code" placeholder="Le code ABC apparaîtra ici..."></textarea>
         </div>
@@ -84,7 +84,6 @@
 <script>
     let allPieces = [];
     
-    // Fonction pour vérifier si abcjs est disponible
     function checkAbcjs() {
         if (typeof abcjs !== 'undefined') {
             document.getElementById('status-msg').textContent = "✅ abcjs chargé (Partition prête)";
@@ -100,16 +99,14 @@
         }
     }
 
-    // Fonction appelée par le bouton
     function forceCheckAbcjs() {
         if (checkAbcjs()) {
             alert("✅ abcjs est chargé ! Vous pouvez maintenant ouvrir un fichier.");
         } else {
-            alert("⚠️ abcjs n'est toujours pas chargé. Vérifiez votre connexion internet.");
+            alert("⚠️ abcjs n'est toujours pas chargé. Vérifiez votre connexion internet et désactivez les bloqueurs de publicités.");
         }
     }
 
-    // Vérification initiale au chargement
     window.onload = function() {
         checkAbcjs();
     };
@@ -172,7 +169,6 @@
 
         document.getElementById('abc-code').value = piece.content;
         
-        // Vérification CRITIQUE : on re-vérifie abcjs à chaque changement de morceau
         const isAbcjsReady = checkAbcjs();
         
         if (isAbcjsReady) {
